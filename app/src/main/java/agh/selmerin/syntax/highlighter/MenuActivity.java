@@ -1,12 +1,16 @@
 package agh.selmerin.syntax.highlighter;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 
 public class MenuActivity extends Activity {
+    private static final int PICKFILE_RESULT_CODE = 1;
+    public final static String EXTRA_MESSAGE = "agh.selmerin.syntax.highlighter.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,5 +36,26 @@ public class MenuActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void chooseFile(View view) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("file/*");
+        startActivityForResult(intent,PICKFILE_RESULT_CODE);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == PICKFILE_RESULT_CODE){
+            if(resultCode == RESULT_OK){
+                String filePath = data.getData().getPath();
+                System.out.println(filePath);
+                Intent open = new Intent(this, CodeViewActivity.class);
+                open.putExtra(EXTRA_MESSAGE, filePath);
+                startActivity(open);
+            }
+        }
+
     }
 }
