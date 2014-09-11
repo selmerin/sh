@@ -7,5 +7,7 @@
     <string name="menuName">SyntaX  Highlighter</string>
     <string name="menu_file_open">OpenFile</string>
     <string name="title_activity_code_view">CodeViewActivity</string>
+    <string name="searchButton">Search</string>
+    <string name="clearButton">Clear</string>
 
 </resources>
