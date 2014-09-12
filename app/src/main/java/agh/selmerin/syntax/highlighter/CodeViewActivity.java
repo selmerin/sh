@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -50,30 +52,29 @@ public class CodeViewActivity extends Activity {
         textViewName.setText(fileName);
 
         webView = (WebView) findViewById(R.id.webView);
-        webView.getSettings().setJavaScriptEnabled(true);
-        //webView.loadUrl("http://www.google.com");
+//        webView.getSettings().setJavaScriptEnabled(true);
+        WebSettings s = webView.getSettings();
+        s.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+        s.setUseWideViewPort(false);
+        s.setAllowFileAccess(true);
+        s.setBuiltInZoomControls(true);
+        s.setLightTouchEnabled(true);
+        s.setLoadsImagesAutomatically(true);
+        s.setSupportZoom(true);
+        s.setSupportMultipleWindows(true);
+        s.setJavaScriptEnabled(true);
 
-        String customHtml = "<html><body><h1>Hello, WebView</h1></body></html>";
-        webView.loadData(customHtml, "text/html", "UTF-8");
-        File f = new File(filePath);
-        System.out.println(f);
-        long length = f.length();
-        System.out.println(length);
-        byte[] array = new byte[(int)length];
+        highlight(filePath);
 
-        InputStream is;
-        try {
-            is = new FileInputStream(f);
-            is.read(array);
-            is.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String sourceString = new String(array);
-        System.out.println(sourceString);
+
+
+//        webView.loadData(customHtml, "text/html", "UTF-8");
     }
-
+    static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,4 +124,65 @@ public class CodeViewActivity extends Activity {
         webView.clearMatches();
     }
 
+    public void nextResult(View view) {
+        webView.findNext(true);
+    }
+
+    private void highlight(String filePath){
+        File f = new File(filePath);
+        System.out.println(f);
+        long length = f.length();
+        System.out.println(length);
+        byte[] array = new byte[(int)length];
+
+        InputStream is;
+        try {
+            is = new FileInputStream(f);
+            is.read(array);
+            is.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String sourceString = new String(array);
+        System.out.println(sourceString);
+        setTitle("SyntaX Highlighter");
+        AssetManager assetManager = getAssets();
+        String css = " ";
+        try {
+            InputStream assetIn = assetManager.open("prettify.css");
+            css = convertStreamToString(assetIn);
+            System.out.println(css);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("CSS:");
+        System.out.println(css);
+        String customHtml = "<html><head><style type='text/css'>" + css +"</style><title>" + fileName + "</title>";
+        //TODO: zamienić pettify z ogólnego na poszczególne języki
+
+//        customHtml += "<link href='file:///android_assets/prettify.css' rel='stylesheet' type='text/css'/> ";
+        String script = " ";
+        try {
+            InputStream assetIn = assetManager.open("prettify.js");
+            script = convertStreamToString(assetIn);
+            System.out.println(script);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        customHtml += "<script>" +
+                script
+                + "</script> ";
+        customHtml +=  "</head><body onload='prettyPrint()'><code class='prettyprint'>";
+        sourceString = sourceString.replace("\n", "<br>");
+        customHtml += sourceString;
+        customHtml += "</body></html>";
+        System.out.println("PLIK HTML");
+        System.out.println(customHtml);
+        System.out.println("KONIEC HTML");
+
+        webView.getSettings().setUseWideViewPort(true);
+        webView.getSettings().setLoadWithOverviewMode(true);
+        webView.loadDataWithBaseURL("file:///android_asset/", customHtml,"text/html", "", "");
+    }
 }

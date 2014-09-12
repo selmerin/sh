@@ -9,5 +9,6 @@
     <string name="title_activity_code_view">CodeViewActivity</string>
     <string name="searchButton">Search</string>
     <string name="clearButton">Clear</string>
+    <string name="nextButton">Next</string>
 
 </resources>
