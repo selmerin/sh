@@ -13,18 +13,34 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
+import prettify.PrettifyParser;
+import syntaxhighlight.ParseResult;
+import syntaxhighlight.Parser;
 
 public class CodeViewActivity extends Activity {
 
     WebView webView;
     String extension;
     String fileName;
+
+    List<String> extensions = fileExtension();
+
+    private static List<String> fileExtension() {
+        List<String> extensions = new LinkedList<String>();
+        extensions.add("java");
+        return extensions;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +49,6 @@ public class CodeViewActivity extends Activity {
 
         Intent intent = getIntent();
         String filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
-        System.out.println("CodeView " + filePath);
-        System.out.println("CodeView " + filePath.endsWith(".jpg"));
         extension = "";
         fileName = "";
 
@@ -51,6 +65,13 @@ public class CodeViewActivity extends Activity {
         System.out.println(textViewName);
         textViewName.setText(fileName);
 
+//        if(!extensions.contains(extension)){
+//            Intent menu = new Intent(this, MenuActivity.class);
+//            startActivity(menu);
+//            Toast.makeText(getApplicationContext(), "File extension not supported", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+
         webView = (WebView) findViewById(R.id.webView);
 //        webView.getSettings().setJavaScriptEnabled(true);
         WebSettings s = webView.getSettings();
@@ -65,11 +86,7 @@ public class CodeViewActivity extends Activity {
         s.setJavaScriptEnabled(true);
 
         highlight(filePath);
-
-
-
-
-//        webView.loadData(customHtml, "text/html", "UTF-8");
+//        javaPrettify(filePath, extension);
     }
     static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
@@ -158,7 +175,8 @@ public class CodeViewActivity extends Activity {
         }
         System.out.println("CSS:");
         System.out.println(css);
-        String customHtml = "<html><head><style type='text/css'>" + css +"</style><title>" + fileName + "</title>";
+        StringBuilder htmlPage = new StringBuilder();
+        htmlPage.append("<html><head><style type='text/css'>" + css +"</style><title>" + fileName + "</title>");
         //TODO: zamienić pettify z ogólnego na poszczególne języki
 
 //        customHtml += "<link href='file:///android_assets/prettify.css' rel='stylesheet' type='text/css'/> ";
@@ -170,19 +188,70 @@ public class CodeViewActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        customHtml += "<script>" +
-                script
-                + "</script> ";
-        customHtml +=  "</head><body onload='prettyPrint()'><code class='prettyprint'>";
+        htmlPage.append("<script>");
+        htmlPage.append(script);
+        htmlPage.append("</script>");
+        htmlPage.append("</head><body onload='prettyPrint()'><code class='prettyprint'>");
         sourceString = sourceString.replace("\n", "<br>");
-        customHtml += sourceString;
-        customHtml += "</body></html>";
+        htmlPage.append(sourceString);
+        htmlPage.append("</body></html>");
         System.out.println("PLIK HTML");
-        System.out.println(customHtml);
+        System.out.println(htmlPage.toString());
         System.out.println("KONIEC HTML");
 
         webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setLoadWithOverviewMode(true);
-        webView.loadDataWithBaseURL("file:///android_asset/", customHtml,"text/html", "", "");
+        webView.loadDataWithBaseURL("file:///android_asset/", htmlPage.toString(),"text/html", "", "");
+    }
+
+
+    Map<String, String> COLORS = buildColorsMap();
+    String FONT_PATTERN = "<font color=\"#%s\">%s</font>";
+    private void javaPrettify(String filePath, String extension){
+        Parser parser = new PrettifyParser();
+        StringBuilder stringBuilder = new StringBuilder();
+        File f = new File(filePath);
+        System.out.println(f);
+        long length = f.length();
+        System.out.println(length);
+        byte[] array = new byte[(int)length];
+
+        InputStream is;
+        try {
+            is = new FileInputStream(f);
+            is.read(array);
+            is.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String sourceString = new String(array);
+        sourceString = sourceString.replace("\n", "<br>");
+
+        List<ParseResult> parseResults = parser.parse(extension,sourceString);
+        for(ParseResult result : parseResults){
+            String type = result.getStyleKeys().get(0);
+            String content = sourceString.substring(result.getOffset(), result.getOffset() + result.getLength());
+            stringBuilder.append(String.format(FONT_PATTERN, getColor(type), content));
+        }
+        System.out.println("javaPrettify: " + stringBuilder.toString());
+
+        webView.getSettings().setUseWideViewPort(true);
+        webView.getSettings().setLoadWithOverviewMode(true);
+        webView.loadDataWithBaseURL("file:///android_asset/", stringBuilder.toString(),"text/html", "", "");
+    }
+    private String getColor(String type){
+        return COLORS.containsKey(type) ? COLORS.get(type) : COLORS.get("pln");
+    }
+    private static Map<String, String> buildColorsMap() {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("typ", "87cefa");
+        map.put("kwd", "00ff00");
+        map.put("lit", "ffff00");
+        map.put("com", "999999");
+        map.put("str", "ff4500");
+        map.put("pun", "eeeeee");
+        map.put("pln", "ffffff");
+        return map;
     }
 }
