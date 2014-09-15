@@ -215,7 +215,11 @@ public class CodeViewActivity extends Activity {
             sourceString = new String(array);
         } else {
             try {
-                sourceString = new RetrieveFile().execute(filePath).get();
+                List<String> list = new RetrieveFile().execute(filePath).get();
+                StringBuilder sb = new StringBuilder();
+                for(String string: list)
+                    sb.append(string.replace("\\\\","\\").replace("\\'","'"));
+                sourceString = sb.toString();
                 System.out.println(sourceString);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -237,6 +241,8 @@ public class CodeViewActivity extends Activity {
         htmlPage.append("</head><body onload='prettyPrint()'><code class='prettyprint'>");
         sourceString = escapeHtml(sourceString);
         sourceString = sourceString.replace("&#13;&#10;", "<br />");
+        sourceString = sourceString.replace("&#10;", "<br />");
+        sourceString = sourceString.replace("&#13;", "<br />");
         htmlPage.append(sourceString);
         htmlPage.append("</body></html>");
         System.out.println("PLIK HTML");
@@ -320,7 +326,7 @@ public class CodeViewActivity extends Activity {
                 while ((line = br.readLine()) != null) {
 //                line = escapeHtml(line);
 //                line = line.replace("&#13;&#10;", "\n");
-                    line = line.replace("\\", "\\\\");
+                    line = line.replace("\\", "\\\\").replace("'","\\'");
                     lineList.add(line+"\\n");
 
                 }
@@ -332,10 +338,14 @@ public class CodeViewActivity extends Activity {
             }
             return lineList;
         } else {
-            //TODO: chce dostać tutaj listę stringów a nie jeden String potrzebne do Piotrka skryptu
             try {
-                String s = new RetrieveFile().execute(filePath).get();
-                System.out.println(s);
+                lineList = new RetrieveFile().execute(filePath).get();
+//                List<String> list = new LinkedList<String>();
+//                for(String string: lineList) {
+//                    String str = string.replace("\\", "\\\\");
+//                    System.out.println(str);
+//                    list.add(str);
+//                }
                 return lineList;
             } catch (InterruptedException e) {
                 e.printStackTrace();
