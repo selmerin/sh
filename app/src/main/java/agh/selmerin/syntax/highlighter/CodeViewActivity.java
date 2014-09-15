@@ -15,14 +15,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 import prettify.PrettifyParser;
 import syntaxhighlight.ParseResult;
@@ -48,12 +54,20 @@ public class CodeViewActivity extends Activity {
         setContentView(R.layout.activity_code_view);
 
         Intent intent = getIntent();
-        String filePath;
-        if(intent.hasExtra(MenuActivity.EXTRA_MESSAGE))
+        String filePath, host = null;
+        boolean isUrl = false;
+        if (intent.hasExtra(MenuActivity.EXTRA_MESSAGE))
             filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
-        else
+        else {
+            host = intent.getData().getHost();
             filePath = intent.getData().getPath();
-        System.out.println(filePath);
+        }
+        if(host != null) {
+            isUrl = true;
+            if(host.contains("github"))
+                filePath = filePath.replace("blob","raw");
+            filePath = "https://" + host + filePath;
+        }
         extension = "";
         fileName = "";
 
@@ -90,9 +104,10 @@ public class CodeViewActivity extends Activity {
         s.setSupportMultipleWindows(true);
         s.setJavaScriptEnabled(true);
 
-        highlight(filePath);
+        highlight(filePath, isUrl);
 //        javaPrettify(filePath, extension);
     }
+
     static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
@@ -150,38 +165,47 @@ public class CodeViewActivity extends Activity {
         webView.findNext(true);
     }
 
-    private void highlight(String filePath){
-        File f = new File(filePath);
-        System.out.println(f);
-        long length = f.length();
-        System.out.println(length);
-        byte[] array = new byte[(int)length];
+    private void highlight(String filePath, boolean isUrl) {
+        System.out.println(filePath);
+        String sourceString = null;
+        if(!isUrl) {
+            File f = new File(filePath);
+            long length = f.length();
+            System.out.println(length);
+            byte[] array = new byte[(int) length];
 
-        InputStream is;
-        try {
-            is = new FileInputStream(f);
-            is.read(array);
-            is.close();
+            InputStream is;
+            try {
+                is = new FileInputStream(f);
+                is.read(array);
+                is.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            sourceString = new String(array);
+        } else {
+            try {
+                sourceString = new RetrieveFile().execute(filePath).get();
+                System.out.println(sourceString);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
         }
-        String sourceString = new String(array);
-        System.out.println(sourceString);
         setTitle("SyntaX Highlighter");
         AssetManager assetManager = getAssets();
         String css = " ";
         try {
             InputStream assetIn = assetManager.open("prettify.css");
             css = convertStreamToString(assetIn);
-            System.out.println(css);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("CSS:");
-        System.out.println(css);
         StringBuilder htmlPage = new StringBuilder();
-        htmlPage.append("<html><head><style type='text/css'>" + css +"</style><title>" + fileName + "</title>");
+        htmlPage.append("<html><head><style type='text/css'>" + css + "</style><title>" + fileName + "</title>");
         //TODO: zamienić pettify z ogólnego na poszczególne języki
 
 //        customHtml += "<link href='file:///android_assets/prettify.css' rel='stylesheet' type='text/css'/> ";
@@ -189,7 +213,6 @@ public class CodeViewActivity extends Activity {
         try {
             InputStream assetIn = assetManager.open("prettify.js");
             script = convertStreamToString(assetIn);
-            System.out.println(script);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -206,20 +229,21 @@ public class CodeViewActivity extends Activity {
 
         webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setLoadWithOverviewMode(true);
-        webView.loadDataWithBaseURL("file:///android_asset/", htmlPage.toString(),"text/html", "", "");
+        webView.loadDataWithBaseURL("file:///android_asset/", htmlPage.toString(), "text/html", "", "");
     }
 
 
     Map<String, String> COLORS = buildColorsMap();
     String FONT_PATTERN = "<font color=\"#%s\">%s</font>";
-    private void javaPrettify(String filePath, String extension){
+
+    private void javaPrettify(String filePath, String extension) {
         Parser parser = new PrettifyParser();
         StringBuilder stringBuilder = new StringBuilder();
         File f = new File(filePath);
         System.out.println(f);
         long length = f.length();
         System.out.println(length);
-        byte[] array = new byte[(int)length];
+        byte[] array = new byte[(int) length];
 
         InputStream is;
         try {
@@ -233,8 +257,8 @@ public class CodeViewActivity extends Activity {
         String sourceString = new String(array);
         sourceString = sourceString.replace("\n", "<br>");
 
-        List<ParseResult> parseResults = parser.parse(extension,sourceString);
-        for(ParseResult result : parseResults){
+        List<ParseResult> parseResults = parser.parse(extension, sourceString);
+        for (ParseResult result : parseResults) {
             String type = result.getStyleKeys().get(0);
             String content = sourceString.substring(result.getOffset(), result.getOffset() + result.getLength());
             stringBuilder.append(String.format(FONT_PATTERN, getColor(type), content));
@@ -243,11 +267,13 @@ public class CodeViewActivity extends Activity {
 
         webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setLoadWithOverviewMode(true);
-        webView.loadDataWithBaseURL("file:///android_asset/", stringBuilder.toString(),"text/html", "", "");
+        webView.loadDataWithBaseURL("file:///android_asset/", stringBuilder.toString(), "text/html", "", "");
     }
-    private String getColor(String type){
+
+    private String getColor(String type) {
         return COLORS.containsKey(type) ? COLORS.get(type) : COLORS.get("pln");
     }
+
     private static Map<String, String> buildColorsMap() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("typ", "87cefa");
