@@ -6,9 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
@@ -67,10 +70,11 @@ public class CodeViewActivity extends Activity {
             filePath = intent.getData().getPath();
         }
         if(host != null) {
-            isUrl = true;
-            if(host.contains("github"))
+            if(host.contains("github")){
                 filePath = filePath.replace("blob","raw");
-            filePath = "https://" + host + filePath;
+                filePath = "https://" + host + filePath;
+                isUrl = true;
+            }
         }
         extension = "";
         fileName = "";
@@ -106,11 +110,28 @@ public class CodeViewActivity extends Activity {
         s.setLoadsImagesAutomatically(true);
         s.setSupportZoom(true);
         s.setSupportMultipleWindows(true);
+        s.setDomStorageEnabled(true);
         s.setJavaScriptEnabled(true);
 
-        highlight(filePath, isUrl);
+        webView.setWebChromeClient(new WebChromeClient() {
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.d("MyApplication", cm.message() + " -- From line "
+                        + cm.lineNumber() + " of "
+                        + cm.sourceId());
+                return true;
+            }
+        });
+
+        if(extension.equals("c")){
+            highlightC(filePath, isUrl);
+        }else{
+            highlight(filePath, isUrl);
+        }
+
 //        javaPrettify(filePath, extension);
     }
+
+
 
     static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
@@ -169,7 +190,7 @@ public class CodeViewActivity extends Activity {
         webView.findNext(true);
     }
 
-    private void highlight(String filePath, boolean isUrl) {
+    private String readFile(String filePath, boolean isUrl){
         System.out.println(filePath);
         String sourceString = null;
         if(!isUrl) {
@@ -199,6 +220,11 @@ public class CodeViewActivity extends Activity {
             }
 
         }
+        return sourceString;
+    }
+
+    private void highlight(String filePath, boolean isUrl) {
+        String sourceString = readFile(filePath, isUrl);
         setTitle("SyntaX Highlighter");
         AssetManager assetManager = getAssets();
         String css = " ";
@@ -209,7 +235,8 @@ public class CodeViewActivity extends Activity {
             e.printStackTrace();
         }
         StringBuilder htmlPage = new StringBuilder();
-        htmlPage.append("<html><head><style type='text/css'>" + css + "</style><title>" + fileName + "</title>");
+//        htmlPage.append("<html><head><style type='text/css'>" + css + "</style><title>" + fileName + "</title>");
+        htmlPage.append("<html><head><link href='prettify.css' rel='stylesheet' type='text/css'/><title>" + fileName + "</title>");
         //TODO: zamienić pettify z ogólnego na poszczególne języki
 
 //        customHtml += "<link href='file:///android_assets/prettify.css' rel='stylesheet' type='text/css'/> ";
@@ -220,8 +247,8 @@ public class CodeViewActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        htmlPage.append("<script>");
-        htmlPage.append(script);
+        htmlPage.append("<script src='prettify.js'>");
+//        htmlPage.append(script);
         htmlPage.append("</script>");
         htmlPage.append("</head><body onload='prettyPrint()'><code class='prettyprint'>");
         sourceString = sourceString.replace("\n", "<br>");
@@ -296,5 +323,36 @@ public class CodeViewActivity extends Activity {
         Intent open = new Intent(this, EditActivity.class);
         open.putExtra(EXTRA_MESSAGE, filePath);
         startActivity(open);
+    }
+
+    private void highlightC(String filePath, boolean isUrl) {
+        String sourceString = readFile(filePath, isUrl);
+        setTitle("SyntaX Highlighter");
+
+        StringBuilder htmlPage = new StringBuilder();
+        htmlPage.append("<html><head><title>" + fileName + "</title><link href='lib-prettify/prettify.css' rel='stylesheet' type='text/css'/>");
+        htmlPage.append("<script src='lib-prettify/prettify.js'>");
+        htmlPage.append("</script>");
+        htmlPage.append("<script type='text/javascript' src='lib/jquery-2.1.1.min.js'></script>");
+        htmlPage.append("<script src='lib-syntaX/parsers/c/grammar.js'></script>");
+        htmlPage.append("<link href='lib-syntaX/syntax.css' rel='stylesheet' type='text/css'/>");
+        htmlPage.append("<script src='lib-syntaX/syntax.js'></script>");
+        htmlPage.append("<script src='lib-syntaX/line-generator.js'></script>");
+
+        htmlPage.append("</head><body><code class='prettyprint'>");
+//        sourceString = sourceString.replace("\n", "<br>");
+        htmlPage.append("</code><script type='text/javascript'>");
+        htmlPage.append("generateCode('");
+        htmlPage.append(sourceString);
+        htmlPage.append("', function() { prettyPrint(); });");
+
+        htmlPage.append("</script></body></html>");
+        System.out.println("PLIK HTML: "+ htmlPage.toString());
+
+        System.out.println("KONIEC HTML");
+
+        webView.getSettings().setUseWideViewPort(true);
+        webView.getSettings().setLoadWithOverviewMode(true);
+        webView.loadDataWithBaseURL("file:///android_asset/", htmlPage.toString(), "text/html", "", "");
     }
 }

@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  padding: 0; }
+
+.line {
+  width: 2em;
+  min-width: 2em;
+  max-width: 2em;
+  margin-right: 5px;
+  border-right: solid 1px grey;
+  background-color: #ddd;
+  display: inline-block; }
+
+.line:after {
+  content: " "; }
+
+.error {
+  position: absolute;
+  z-index: -999999;
+  margin: 0;
+  padding: 0;
+  left: 0;
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  height: 1.1em;
+  min-height: 1.1em;
+  max-height: 1.1em;
+  background-color: red; }
+
+.error:after {
+  content: " "; }
