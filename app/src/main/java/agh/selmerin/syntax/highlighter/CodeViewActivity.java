@@ -48,7 +48,12 @@ public class CodeViewActivity extends Activity {
         setContentView(R.layout.activity_code_view);
 
         Intent intent = getIntent();
-        String filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
+        String filePath;
+        if(intent.hasExtra(MenuActivity.EXTRA_MESSAGE))
+            filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
+        else
+            filePath = intent.getData().getPath();
+        System.out.println(filePath);
         extension = "";
         fileName = "";
 
