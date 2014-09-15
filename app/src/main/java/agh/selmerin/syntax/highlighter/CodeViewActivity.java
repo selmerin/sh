@@ -21,6 +21,8 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -327,9 +329,47 @@ public class CodeViewActivity extends Activity {
         open.putExtra(EXTRA_MESSAGE, filePath);
         startActivity(open);
     }
+    public List<String> specialRead(String filePath, boolean isUrl){
+        BufferedReader br = null;
+        String line;
+        List<String> lineList = new LinkedList<String>();
+        if(!isUrl) {
+            try {
+                br = new BufferedReader(new FileReader(filePath));
+
+                while ((line = br.readLine()) != null) {
+//                line = escapeHtml(line);
+//                line = line.replace("&#13;&#10;", "\n");
+                    lineList.add(line);
+
+                }
+                br.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return lineList;
+        } else {
+            //TODO: chce dostać tutaj listę stringów a nie jeden String potrzebne do Piotrka skryptu
+            try {
+                String s = new RetrieveFile().execute(filePath).get();
+                System.out.println(s);
+                return lineList;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return lineList;
+    }
 
     private void highlightC(String filePath, boolean isUrl) {
         String sourceString = readFile(filePath, isUrl);
+        List<String> lineList = specialRead(filePath, isUrl);
         setTitle("SyntaX Highlighter");
 
         StringBuilder htmlPage = new StringBuilder();
@@ -345,8 +385,17 @@ public class CodeViewActivity extends Activity {
         htmlPage.append("</head><body><code class='prettyprint'>");
 //        sourceString = sourceString.replace("\n", "<br>");
         htmlPage.append("</code><script type='text/javascript'>");
-        htmlPage.append("generateCode('");
-        htmlPage.append(sourceString);
+        htmlPage.append("generateCode(");
+//        htmlPage.append(sourceString);
+        for(String line : lineList){
+            htmlPage.append("'");
+            htmlPage.append(line);
+            htmlPage.append("'\n");
+            htmlPage.append('+');
+        }
+        htmlPage.append("'");
+
+
         htmlPage.append("', function() { prettyPrint(); });");
 
         htmlPage.append("</script></body></html>");
