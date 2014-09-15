@@ -7,6 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.io.File;
+
 
 public class MenuActivity extends Activity {
     private static final int PICKFILE_RESULT_CODE = 1;
@@ -52,6 +54,7 @@ public class MenuActivity extends Activity {
                 String filePath = data.getData().getPath();
                 System.out.println(filePath);
                 Intent open = new Intent(this, CodeViewActivity.class);
+//                Intent open = new Intent(this, EditActivity.class);
                 open.putExtra(EXTRA_MESSAGE, filePath);
                 startActivity(open);
             }

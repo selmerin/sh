@@ -10,5 +10,8 @@
     <string name="searchButton">Search</string>
     <string name="clearButton">Clear</string>
     <string name="nextButton">Next</string>
+    <string name="title_activity_edit">EditActivity</string>
+    <string name="saveButton">Save</string>
+    <string name="editButton">Edit</string>
 
 </resources>

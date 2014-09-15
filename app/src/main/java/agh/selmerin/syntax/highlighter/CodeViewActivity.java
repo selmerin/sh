@@ -30,9 +30,12 @@ import syntaxhighlight.Parser;
 
 public class CodeViewActivity extends Activity {
 
+    public final static String EXTRA_MESSAGE = "agh.selmerin.syntax.highlighter.MESSAGE";
+
     WebView webView;
     String extension;
     String fileName;
+    String filePath;
 
     List<String> extensions = fileExtension();
 
@@ -48,7 +51,7 @@ public class CodeViewActivity extends Activity {
         setContentView(R.layout.activity_code_view);
 
         Intent intent = getIntent();
-        String filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
+        filePath = intent.getStringExtra(MenuActivity.EXTRA_MESSAGE);
         extension = "";
         fileName = "";
 
@@ -253,5 +256,13 @@ public class CodeViewActivity extends Activity {
         map.put("pun", "eeeeee");
         map.put("pln", "ffffff");
         return map;
+    }
+
+    public void editFile(View view) {
+
+        System.out.println(filePath);
+        Intent open = new Intent(this, EditActivity.class);
+        open.putExtra(EXTRA_MESSAGE, filePath);
+        startActivity(open);
     }
 }
