@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="agh.selmerin.syntax.highlighter" >
 
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:allowBackup="true"
         android:icon="@drawable/code_icon"
@@ -17,8 +18,123 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CodeViewActivity"
-            android:label="@string/title_activity_code_view" >
+            android:name=".CodeViewActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" />
+                <data android:scheme="http" android:host="github.com" />
+                <data android:scheme="http" android:host="www.github.com" />
+                <data android:scheme="https" android:host="github.com" />
+                <data android:scheme="https" android:host="www.github.com" />
+                <data android:mimeType="*/*" />
+                <!-- xml -->
+                <data android:pathPattern=".*\\.xml" />
+                <data android:pathPattern=".*\\.pxml" />
+                <data android:pathPattern=".*\\.myapp" />
+                <!-- html, php, java, C# server pages -->
+                <data android:pathPattern=".*\\.htm" />
+                <data android:pathPattern=".*\\.html" />
+                <data android:pathPattern=".*\\.php" />
+                <data android:pathPattern=".*\\.phptml" />
+                <data android:pathPattern=".*\\.phtml" />
+                <data android:pathPattern=".*\\.jsp" />
+                <data android:pathPattern=".*\\.asp" />
+                <data android:pathPattern=".*\\.aspx" />
+                <data android:pathPattern=".*\\.cshtml" />
+                <!-- css, js, sql -->
+                <data android:pathPattern=".*\\.css" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.json" />
+                <data android:pathPattern=".*\\.ejs" />
+                <data android:pathPattern=".*\\.sql" />
+                <!-- bash, python -->
+                <data android:pathPattern=".*\\.sh" />
+                <data android:pathPattern=".*\\.bsh" />
+                <data android:pathPattern=".*\\.py" />
+                <data android:pathPattern=".*\\.rpy" />
+                <data android:pathPattern=".*\\.pyw" />
+                <!-- C/C++/Objective-C -->
+                <data android:pathPattern=".*\\.c" />
+                <data android:pathPattern=".*\\.h" />
+                <data android:pathPattern=".*\\.m" />
+                <data android:pathPattern=".*\\.mm" />
+                <data android:pathPattern=".*\\.hpp" />
+                <data android:pathPattern=".*\\.hxx" />
+                <data android:pathPattern=".*\\.cpp" />
+                <data android:pathPattern=".*\\.cxx" />
+                <data android:pathPattern=".*\\.c++" />
+                <data android:pathPattern=".*\\.cc" />
+                <!-- pearl -->
+                <data android:pathPattern=".*\\.pl" />
+                <data android:pathPattern=".*\\.prl" />
+                <data android:pathPattern=".*\\.perl" />
+                <!-- java -->
+                <data android:pathPattern=".*\\.java" />
+                <data android:pathPattern=".*\\.j" />
+                <!-- other -->
+                <data android:pathPattern=".*\\.rs" />
+                <data android:pathPattern=".*\\.rb" />
+                <data android:pathPattern=".*\\.vb" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="github.com" />
+                <data android:scheme="http" android:host="www.github.com" />
+                <data android:scheme="https" android:host="github.com" />
+                <data android:scheme="https" android:host="www.github.com" />
+                <!-- xml -->
+                <data android:pathPattern=".*\\.xml" />
+                <data android:pathPattern=".*\\.pxml" />
+                <data android:pathPattern=".*\\.myapp" />
+                <!-- html, php, java, C# server pages -->
+                <data android:pathPattern=".*\\.htm" />
+                <data android:pathPattern=".*\\.html" />
+                <data android:pathPattern=".*\\.php" />
+                <data android:pathPattern=".*\\.phptml" />
+                <data android:pathPattern=".*\\.phtml" />
+                <data android:pathPattern=".*\\.jsp" />
+                <data android:pathPattern=".*\\.asp" />
+                <data android:pathPattern=".*\\.aspx" />
+                <data android:pathPattern=".*\\.cshtml" />
+                <!-- css, js, sql -->
+                <data android:pathPattern=".*\\.css" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.json" />
+                <data android:pathPattern=".*\\.ejs" />
+                <data android:pathPattern=".*\\.sql" />
+                <!-- bash, python -->
+                <data android:pathPattern=".*\\.sh" />
+                <data android:pathPattern=".*\\.bsh" />
+                <data android:pathPattern=".*\\.py" />
+                <data android:pathPattern=".*\\.rpy" />
+                <data android:pathPattern=".*\\.pyw" />
+                <!-- C/C++/Objective-C -->
+                <data android:pathPattern=".*\\.c" />
+                <data android:pathPattern=".*\\.h" />
+                <data android:pathPattern=".*\\.m" />
+                <data android:pathPattern=".*\\.mm" />
+                <data android:pathPattern=".*\\.hpp" />
+                <data android:pathPattern=".*\\.hxx" />
+                <data android:pathPattern=".*\\.cpp" />
+                <data android:pathPattern=".*\\.cxx" />
+                <data android:pathPattern=".*\\.c++" />
+                <data android:pathPattern=".*\\.cc" />
+                <!-- pearl -->
+                <data android:pathPattern=".*\\.pl" />
+                <data android:pathPattern=".*\\.prl" />
+                <data android:pathPattern=".*\\.perl" />
+                <!-- java -->
+                <data android:pathPattern=".*\\.java" />
+                <data android:pathPattern=".*\\.j" />
+                <!-- other -->
+                <data android:pathPattern=".*\\.rs" />
+                <data android:pathPattern=".*\\.rb" />
+                <data android:pathPattern=".*\\.vb" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".EditActivity"

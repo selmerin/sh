@@ -9,7 +9,7 @@
     tools:context="agh.selmerin.syntax.highlighter.CodeViewActivity">
 
     <TextView
-        android:text="@string/menuName"
+        android:text="@string/app_name"
         android:id="@+id/textViewFileName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
