@@ -230,29 +230,9 @@ public class CodeViewActivity extends Activity {
     private void highlight(String filePath, boolean isUrl) {
         String sourceString = readFile(filePath, isUrl);
         setTitle("SyntaX Highlighter");
-        AssetManager assetManager = getAssets();
-        String css = " ";
-        try {
-            InputStream assetIn = assetManager.open("prettify.css");
-            css = convertStreamToString(assetIn);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         StringBuilder htmlPage = new StringBuilder();
-//        htmlPage.append("<html><head><style type='text/css'>" + css + "</style><title>" + fileName + "</title>");
         htmlPage.append("<html><head><link href='prettify.css' rel='stylesheet' type='text/css'/><title>" + fileName + "</title>");
-        //TODO: zamienić pettify z ogólnego na poszczególne języki
-
-//        customHtml += "<link href='file:///android_assets/prettify.css' rel='stylesheet' type='text/css'/> ";
-        String script = " ";
-        try {
-            InputStream assetIn = assetManager.open("prettify.js");
-            script = convertStreamToString(assetIn);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         htmlPage.append("<script src='prettify.js'>");
-//        htmlPage.append(script);
         htmlPage.append("</script>");
         htmlPage.append("</head><body onload='prettyPrint()'><code class='prettyprint'>");
         sourceString = escapeHtml(sourceString);
@@ -340,7 +320,8 @@ public class CodeViewActivity extends Activity {
                 while ((line = br.readLine()) != null) {
 //                line = escapeHtml(line);
 //                line = line.replace("&#13;&#10;", "\n");
-                    lineList.add(line);
+                    line = line.replace("\\", "\\\\");
+                    lineList.add(line+"\\n");
 
                 }
                 br.close();
@@ -368,7 +349,7 @@ public class CodeViewActivity extends Activity {
     }
 
     private void highlightC(String filePath, boolean isUrl) {
-        String sourceString = readFile(filePath, isUrl);
+//        String sourceString = readFile(filePath, isUrl);
         List<String> lineList = specialRead(filePath, isUrl);
         setTitle("SyntaX Highlighter");
 
