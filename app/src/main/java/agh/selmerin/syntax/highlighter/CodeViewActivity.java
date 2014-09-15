@@ -37,6 +37,8 @@ import prettify.PrettifyParser;
 import syntaxhighlight.ParseResult;
 import syntaxhighlight.Parser;
 
+import static android.text.Html.escapeHtml;
+
 public class CodeViewActivity extends Activity {
 
     public final static String EXTRA_MESSAGE = "agh.selmerin.syntax.highlighter.MESSAGE";
@@ -251,7 +253,8 @@ public class CodeViewActivity extends Activity {
 //        htmlPage.append(script);
         htmlPage.append("</script>");
         htmlPage.append("</head><body onload='prettyPrint()'><code class='prettyprint'>");
-        sourceString = sourceString.replace("\n", "<br>");
+        sourceString = escapeHtml(sourceString);
+        sourceString = sourceString.replace("&#13;&#10;", "<br />");
         htmlPage.append(sourceString);
         htmlPage.append("</body></html>");
         System.out.println("PLIK HTML");
